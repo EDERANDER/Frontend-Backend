@@ -332,7 +332,7 @@ export default function FacturadorApp() {
   
     try {
       // 🔐 Obtener API Key desde el backend
-      const apiKeyRes = await fetch("https://backend-facturador.rj.r.appspot.comcd/facturador/apikey"); // cambia el host si estás en producción
+      const apiKeyRes = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/apikey"); // cambia el host si estás en producción
       const apiKeyData = await apiKeyRes.json();
       const apiKey = apiKeyData.apikey;
   
