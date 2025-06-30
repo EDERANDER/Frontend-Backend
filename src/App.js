@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import loginBg from './fondo.jpg';
 export default function FacturadorApp() {
   // Agregar junto a los otros estados
   const [enviando, setEnviando] = useState(false);
@@ -539,16 +539,22 @@ export default function FacturadorApp() {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          width: '100%'
+          width: '100%',
+          backgroundImage: `url(${loginBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
         }}>
           <form 
             onSubmit={handleLogin}
             style={{
               padding: '2rem',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-              width: '300px'
+              borderRadius: '12px',
+              width: '300px',
+              background: 'rgba(255, 255, 255, 0.2)', // fondo semitransparente
+              backdropFilter: 'blur(10px)',           // efecto de desenfoque
+              WebkitBackdropFilter: 'blur(10px)',     // compatibilidad con Safari
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
             }}
           >
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Iniciar Sesión</h2>
@@ -585,14 +591,16 @@ export default function FacturadorApp() {
             <button
               type="submit"
               style={{
-                width: '100%',
-                padding: '0.75rem',
+                width: 'auto',
+                padding: '0.75rem 1.5rem',
                 backgroundColor: '#4CAF50',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                display: 'block',
+                margin: '0 auto' // esto lo centra horizontalmente
               }}
             >
               Ingresar
