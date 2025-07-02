@@ -283,7 +283,7 @@ export default function FacturadorApp() {
         controller.abort();
         setErrorEnvio("Error de conexión con el servidor");
         setEnviando(false);
-      }, 4500);
+      }, 10000);
   
       const response = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/send", {
         method: "POST",
@@ -765,7 +765,7 @@ export default function FacturadorApp() {
                       transform: 'translateX(3px)'
                     }
                   }}
-                >
+                 >
                   {cargandoPdf ? (
                     <>
                       <span style={{ 
@@ -784,8 +784,37 @@ export default function FacturadorApp() {
                     </>
                   )}
                 </button>
+                {/* Botón de Informe ventas*/}
+                <button
+                  onClick={() => window.open("https://ventas-facturador.streamlit.app/", "_blank")}
+                  style={{
+                    padding: '14px 20px',
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontSize: '15px',
+                    transition: 'all 0.2s ease',
+                    ':hover': {
+                      backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                      transform: 'translateX(3px)'
+                    }
+                  }}
+                >
+                  <span style={{ 
+                    fontSize: '20px',
+                    color: '#3b82f6'
+                  }}>📊</span>
+                  <span>Informe-Ventas</span>
+                </button>
+
                 {/* Botón de cerrar sesión */}
-              <button
+                <button
                   onClick={cerrarSesion}
                   style={{
                     padding: '10px 20px',
@@ -810,7 +839,10 @@ export default function FacturadorApp() {
                      >
                   <span style={{ fontSize: '20px' }}>🚪</span>
                   <span>Cerrar Sesión</span>
-              </button>
+                </button>
+
+                
+                
               </div>
             </div>
           </div>
