@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import loginBg from './fondo.jpg';
 export default function FacturadorApp() {
   // Agregar junto a los otros estados
@@ -55,7 +55,8 @@ export default function FacturadorApp() {
   const [tipoEnvioWhatsapp, setTipoEnvioWhatsapp] = useState('archivo'); // 'archivo' o 'texto'
   const [mensajeTextoWhatsapp, setMensajeTextoWhatsapp] = useState("");
 
-  
+  // Estado para la animación del botón de cambio de documento
+  const [isSwitchButtonHovered, setSwitchButtonHovered] = useState(false);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -337,7 +338,7 @@ export default function FacturadorApp() {
   
     try {
       // 🔐 Obtener API Key desde el backend
-      const apiKeyRes = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/apikey"); // cambia el host si estás en producción
+      const apiKeyRes = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/apikey"); 
       const apiKeyData = await apiKeyRes.json();
       const apiKey = apiKeyData.apikey;
   
@@ -489,13 +490,15 @@ export default function FacturadorApp() {
       return;
     }
 
-    if (!numeroWhatsapp.startsWith("51") || numeroWhatsapp.length !== 11) {
-      setMensajeWhatsapp("El número debe empezar con 51 y tener 11 dígitos");
+    if (numeroWhatsapp.length !== 9) {
+      setMensajeWhatsapp("El número de WhatsApp debe tener 9 dígitos.");
       return;
     }
 
     setEnviandoWhatsapp(true);
     setMensajeWhatsapp("");
+
+    const numeroCompleto = `51${numeroWhatsapp}`;
 
     try {
       // Convertir archivo a base64
@@ -511,14 +514,13 @@ export default function FacturadorApp() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            number: numeroWhatsapp,
+            number: numeroCompleto,
             mediatype: "document",
             filename: nombreArchivo.endsWith('.pdf') ? nombreArchivo : `${nombreArchivo}.pdf`,
             media: base64Media,
-            caption: "documento electronico, gracias por su compra"
+            caption: "*DOCUMENTO ELECTRONICO ENVIADO*. GRACIAS POR SU COMPRA."
           })
         };
-        const encodedNumber = encodeURIComponent(numeroWhatsapp);
         const response = await fetch(`https://apiwsp.factiliza.com/v1/message/sendmedia/NTE5MjE0MjA3NTk%3D`, options);
         const result = await response.json();
         if (response.ok) {
@@ -542,9 +544,16 @@ export default function FacturadorApp() {
       setMensajeWhatsapp("Debes ingresar un número y un mensaje");
       return;
     }
+
+    if (numeroWhatsapp.length !== 9) {
+      setMensajeWhatsapp("El número de WhatsApp debe tener 9 dígitos.");
+      return;
+    }
   
     setEnviandoWhatsapp(true);
     setMensajeWhatsapp("");
+
+    const numeroCompleto = `51${numeroWhatsapp}`;
   
     try {
       const options = {
@@ -554,7 +563,7 @@ export default function FacturadorApp() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          number: numeroWhatsapp,
+          number: numeroCompleto,
           text: mensajeTextoWhatsapp
         })
       };
@@ -924,20 +933,26 @@ export default function FacturadorApp() {
                   </h2>
                   
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
-                      onClick={cambiarTipoDocumento}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        backgroundColor: '#FF9800',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      Cambiar a {tipoDocumento === "boleta" ? "Factura" : "Boleta"}
-                    </button>
+                  <button
+                    onClick={cambiarTipoDocumento}
+                    onMouseEnter={() => setSwitchButtonHovered(true)}
+                    onMouseLeave={() => setSwitchButtonHovered(false)}
+                    style={{
+                      padding: '12px 24px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '16px',
+                      transition: 'all 0.3s ease',
+                      color: 'white',
+                      backgroundColor: tipoDocumento === 'boleta' ? '#2563eb' : '#16a34a',
+                      transform: isSwitchButtonHovered ? 'translateY(-2px)' : 'translateY(0)',
+                      boxShadow: isSwitchButtonHovered ? '0 10px 20px rgba(0, 0, 0, 0.2)' : '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                  >
+                    {tipoDocumento === 'boleta' ? 'Cambiar a Factura' : 'Cambiar a Boleta'}
+                  </button>
                   </div>
                 </div>
 
@@ -1728,7 +1743,7 @@ export default function FacturadorApp() {
                 </label>
                 <input
                   type="text"
-                  placeholder="51921420759"
+                  placeholder="921420759"
                   value={numeroWhatsapp}
                   onChange={(e) => setNumeroWhatsapp(e.target.value)}
                   style={{
