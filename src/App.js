@@ -58,6 +58,13 @@ export default function FacturadorApp() {
   // Estado para la animación del botón de cambio de documento
   const [isSwitchButtonHovered, setSwitchButtonHovered] = useState(false);
 
+  // Estados para la nueva función de búsqueda específica
+  const [vistaActual, setVistaActual] = useState('crear'); // 'crear' o 'buscar'
+  const [tipoDocBusqueda, setTipoDocBusqueda] = useState('factura'); // 'factura' o 'boleta'
+  const [correlativoBusqueda, setCorrelativoBusqueda] = useState('');
+  const [buscandoDocumento, setBuscandoDocumento] = useState(false);
+  const [errorBusquedaDocumento, setErrorBusquedaDocumento] = useState('');
+
   const handleLogin = (e) => {
     e.preventDefault();
     if (usuario === "admin" && contrasena === "admin123") {
@@ -481,6 +488,68 @@ export default function FacturadorApp() {
       });
   };
 
+  const buscarDocumentoEspecifico = async () => {
+    if (!correlativoBusqueda) {
+      setErrorBusquedaDocumento("Ingrese el correlativo");
+      return;
+    }
+
+    setBuscandoDocumento(true);
+    setErrorBusquedaDocumento("");
+    setCargandoPdf(true); // Reutilizar estado de carga de PDF
+    setMostrarPdf(false);
+
+    const requestBody = {
+      tipo_Doc: tipoDocBusqueda === 'factura' ? '01' : '03',
+      serie: tipoDocBusqueda === 'factura' ? 'F202' : 'B202',
+      correlativo: correlativoBusqueda
+    };
+
+    try {
+      // OJO: El usuario mencionó un Bearer token. No se cual es para localhost.
+      // Usaré el de la otra API como placeholder, pero probablemente deba ser cambiado.
+      const response = await fetch("http://localhost:8080/facturador/devolverEspecifico", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // PREGUNTAR AL USUARIO POR EL TOKEN CORRECTO PARA ESTE ENDPOINT
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODg0MiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImNvbnN1bHRvciJ9.4m1S0AkEpql3vBmLHjoZZWVNZ3zqMgVgQ1JtrRjcTk8"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${requestBody.serie}-${requestBody.correlativo}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          setPdfUrl(url);
+          setMostrarPdf(true); // Mostrar el visor de PDF
+        }
+        
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: "Error al procesar la respuesta del servidor." }));
+        setErrorBusquedaDocumento(errorData.message || "No se encontró el documento o hubo un error.");
+      }
+    } catch (error) {
+      console.error("Error al buscar documento:", error);
+      setErrorBusquedaDocumento("Error de conexión. Asegúrese que el servidor en localhost:8080 esté corriendo.");
+    } finally {
+      setBuscandoDocumento(false);
+      setCargandoPdf(false);
+    }
+  };
+
   const { base, igv, total } = calcularTotales();
 
   // Función para enviar por WhatsApp
@@ -726,7 +795,7 @@ export default function FacturadorApp() {
                 flex: 1
                  }}>
                 <button
-                  onClick={() => setMostrarPdf(false)}
+                  onClick={() => { setMostrarPdf(false); setVistaActual('crear'); }}
                   style={{
                     padding: '14px 20px',
                     backgroundColor: 'rgba(255,255,255,0.05)',
@@ -754,7 +823,7 @@ export default function FacturadorApp() {
                 </button>
                 
                 <button
-                  onClick={generarPDF}
+                  onClick={() => { setVistaActual('crear'); generarPDF(); }}
                   disabled={cargandoPdf}
                   style={{
                     padding: '14px 20px',
@@ -793,6 +862,35 @@ export default function FacturadorApp() {
                     </>
                   )}
                 </button>
+
+                <button
+                  onClick={() => { setVistaActual('buscar'); setMostrarPdf(false); }}
+                  style={{
+                    padding: '14px 20px',
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    fontSize: '15px',
+                    transition: 'all 0.2s ease',
+                    ':hover': {
+                      backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                      transform: 'translateX(3px)'
+                    }
+                  }}
+                >
+                  <span style={{ 
+                    fontSize: '20px',
+                    color: '#f59e0b'
+                  }}>🔎</span>
+                  <span>Buscar Documento</span>
+                </button>
+
                 {/* Botón de Informe ventas*/}
                 <button
                   onClick={() => window.open("https://ventas-facturador.streamlit.app/", "_blank")}
@@ -907,7 +1005,7 @@ export default function FacturadorApp() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : vistaActual === 'crear' ? (
               <>
                 <div style={{ 
                   display: 'flex', 
@@ -1413,7 +1511,146 @@ export default function FacturadorApp() {
                     </>
                   )}
                  </>
+            ) : (
+              <div style={{ 
+                backgroundColor: '#ffffff', 
+                padding: '24px', 
+                borderRadius: '12px',
+                margin: 'auto',
+                marginTop: '50px',
+                maxWidth: '600px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                border: '1px solid #f0f0f0'
+              }}>
+                <h3 style={{ 
+                  marginTop: 0, 
+                  marginBottom: '20px',
+                  color: '#2d3748',
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <span style={{ color: '#f59e0b' }}>🔎</span>
+                  Buscar Documento Específico
+                </h3>
+                
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '20px',
+                  marginBottom: '20px'
+                }}>
+                  {/* Tipo de Documento */}
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px',
+                      color: '#4a5568',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>Tipo de Documento</label>
+                    <select
+                      value={tipoDocBusqueda}
+                      onChange={(e) => setTipoDocBusqueda(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        backgroundColor: '#f8fafc',
+                        transition: 'all 0.2s',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                      }}
+                    >
+                      <option value="factura">Factura</option>
+                      <option value="boleta">Boleta</option>
+                    </select>
+                  </div>
+
+                  {/* Correlativo */}
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px',
+                      color: '#4a5568',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      Correlativo
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 123"
+                      value={correlativoBusqueda}
+                      onChange={(e) => {
+                        if (/^\d*$/.test(e.target.value)) {
+                          setCorrelativoBusqueda(e.target.value);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        backgroundColor: '#f8fafc',
+                        transition: 'all 0.2s',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={buscarDocumentoEspecifico}
+                  disabled={buscandoDocumento || cargandoPdf}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: (buscandoDocumento || cargandoPdf) ? '#fcd34d' : '#f59e0b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: (buscandoDocumento || cargandoPdf) ? 'wait' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {(buscandoDocumento || cargandoPdf) ? (
+                    <>
+                      <span className="spinner">⏳</span>
+                      <span>Buscando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: '18px' }}>📄</span>
+                      <span>Visualizar PDF</span>
+                    </>
+                  )}
+                </button>
+                {errorBusquedaDocumento && (
+                  <p style={{ 
+                    color: '#ef4444', 
+                    fontSize: '13px', 
+                    marginTop: '15px',
+                    textAlign: 'center',
+                    padding: '8px 12px',
+                    backgroundColor: '#fef2f2',
+                    borderRadius: '6px',
+                  }}>
+                    ⚠️ {errorBusquedaDocumento}
+                  </p>
                 )}
+              </div>
+            )}
               </div>
         </>
       )}
