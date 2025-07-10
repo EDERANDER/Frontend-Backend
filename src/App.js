@@ -508,7 +508,7 @@ export default function FacturadorApp() {
     try {
       // OJO: El usuario mencionó un Bearer token. No se cual es para localhost.
       // Usaré el de la otra API como placeholder, pero probablemente deba ser cambiado.
-      const response = await fetch("http://localhost:8080/facturador/devolverEspecifico", {
+      const response = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/devolverEspecifico", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
