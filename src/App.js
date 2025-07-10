@@ -587,7 +587,7 @@ export default function FacturadorApp() {
             mediatype: "document",
             filename: nombreArchivo.endsWith('.pdf') ? nombreArchivo : `${nombreArchivo}.pdf`,
             media: base64Media,
-            caption: "*DOCUMENTO ELECTRONICO ENVIADO*. GRACIAS POR SU COMPRA."
+            caption: "✅ Documento electrónico enviado correctamente.📄 Tu comprobante ya está en camino.📬 Si tienes alguna duda o consulta, no dudes en escribirnos a este mismo número.¡Gracias por tu preferencia! 💙😊"
           })
         };
         const response = await fetch(`https://apiwsp.factiliza.com/v1/message/sendmedia/NTE5MjE0MjA3NTk%3D`, options);
