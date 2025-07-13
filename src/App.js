@@ -291,7 +291,7 @@ export default function FacturadorApp() {
         controller.abort();
         setErrorEnvio("Error de conexión con el servidor");
         setEnviando(false);
-      }, 10000);
+      }, 20000);
   
       const response = await fetch("https://backend-facturador.rj.r.appspot.com/facturador/send", {
         method: "POST",
