@@ -1269,9 +1269,7 @@ export default function FacturadorApp() {
                   }}>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px' }}>Unidad</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: NIU"
+                      <select
                         value={unidad}
                         onChange={(e) => setUnidad(e.target.value)}
                         style={{
@@ -1280,7 +1278,11 @@ export default function FacturadorApp() {
                           border: '1px solid #ddd',
                           borderRadius: '4px'
                         }}
-                      />
+                      >
+                        <option value="NIU">NIU - Unidad (bienes)</option>
+                        <option value="KGM">KGM - Kilogramo</option>
+                        <option value="LTR">LTR - Litro</option>
+                      </select>
                     </div>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px' }}>Código</label>
